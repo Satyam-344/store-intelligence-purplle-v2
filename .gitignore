@@ -1,0 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+.env
+.env.local
+
+# Models (large binary files)
+*.pt
+*.pth
+*.onnx
+*.weights
+runs/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
+
+# Node / dashboard
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.vite/
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Alembic
+# (keep alembic.ini but not migration output)
+
+# Video clips (large, provided separately)
+*.mp4
+
+# Layout image (provided separately)
+*.png
+
+# Temporary
+*.tmp
+*.bak
+
+# Claude-local files (session instructions, memory, plans — not for repo)
+CLAUDE.md
+.claude/
+*.claude.json
+sample_events*.jsonl
+
+# Output events from pipeline runs
+data/output_events.jsonl

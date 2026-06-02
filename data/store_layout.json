@@ -1,0 +1,128 @@
+{
+  "store_id": "STORE_BLR_002",
+  "store_name": "Purplle Bangalore 002",
+  "open_hours": { "start": "10:00", "end": "22:00" },
+  "cameras": {
+    "CAM_ENTRY_01": {
+      "file": "entry 1.mp4",
+      "type": "entry_exit",
+      "description": "Primary entry/exit threshold camera",
+      "entry_line_y_fraction": 0.75,
+      "resolution": [1920, 1080],
+      "fps": 15
+    },
+    "CAM_ENTRY_02": {
+      "file": "entry 2.mp4",
+      "type": "entry_exit",
+      "description": "Secondary entry/exit threshold camera (overlaps with CAM_ENTRY_01)",
+      "entry_line_y_fraction": 0.75,
+      "resolution": [1920, 1080],
+      "fps": 15
+    },
+    "CAM_BILLING_01": {
+      "file": "billing_area.mp4",
+      "type": "billing",
+      "description": "Cash counter / billing area camera",
+      "resolution": [1920, 1080],
+      "fps": 15
+    },
+    "CAM_FLOOR_01": {
+      "file": "zone.mp4",
+      "type": "floor",
+      "description": "Main floor coverage — FOH, wall units, BOH threshold",
+      "resolution": [1920, 1080],
+      "fps": 15
+    }
+  },
+  "zones": [
+    {
+      "id": "ENTRANCE",
+      "name": "Entrance / Exit Threshold",
+      "type": "threshold",
+      "camera": "CAM_ENTRY_01",
+      "sku_zone": null,
+      "is_staff_zone": false,
+      "polygon_px": [[700, 900], [1220, 900], [1220, 1080], [700, 1080]],
+      "description": "Entry and exit counting line zone"
+    },
+    {
+      "id": "FOH",
+      "name": "Front of House",
+      "type": "floor",
+      "camera": "CAM_FLOOR_01",
+      "sku_zone": "GENERAL",
+      "is_staff_zone": false,
+      "polygon_px": [[100, 400], [1820, 400], [1820, 950], [100, 950]],
+      "description": "Main retail floor — general browsing area"
+    },
+    {
+      "id": "BOH",
+      "name": "Back of House",
+      "type": "staff_only",
+      "camera": "CAM_FLOOR_01",
+      "sku_zone": null,
+      "is_staff_zone": true,
+      "polygon_px": [[400, 0], [1820, 0], [1820, 380], [400, 380]],
+      "description": "Staff-only back-of-house storage area"
+    },
+    {
+      "id": "CASH_COUNTER",
+      "name": "Cash Counter / Billing",
+      "type": "billing",
+      "camera": "CAM_BILLING_01",
+      "sku_zone": null,
+      "is_staff_zone": false,
+      "polygon_px": [[600, 100], [1320, 100], [1320, 600], [600, 600]],
+      "description": "Billing counter and queue area"
+    },
+    {
+      "id": "WALL_LEFT",
+      "name": "Left Wall Units",
+      "type": "product",
+      "camera": "CAM_FLOOR_01",
+      "sku_zone": "SKINCARE",
+      "is_staff_zone": false,
+      "polygon_px": [[0, 300], [200, 300], [200, 950], [0, 950]],
+      "description": "Left side wall shelving — skincare products"
+    },
+    {
+      "id": "WALL_RIGHT",
+      "name": "Right Wall Units",
+      "type": "product",
+      "camera": "CAM_FLOOR_01",
+      "sku_zone": "COSMETICS",
+      "is_staff_zone": false,
+      "polygon_px": [[1720, 300], [1920, 300], [1920, 950], [1720, 950]],
+      "description": "Right side wall shelving — cosmetics products"
+    },
+    {
+      "id": "WALL_BACK",
+      "name": "Back Wall Units",
+      "type": "product",
+      "camera": "CAM_FLOOR_01",
+      "sku_zone": "HAIRCARE",
+      "is_staff_zone": false,
+      "polygon_px": [[200, 300], [1720, 300], [1720, 420], [200, 420]],
+      "description": "Back wall shelving — haircare products"
+    }
+  ],
+  "cross_camera_overlap": [
+    {
+      "cameras": ["CAM_ENTRY_01", "CAM_ENTRY_02"],
+      "description": "Both entry cameras overlap in the entrance threshold area — dedup by Re-ID within 30s window"
+    },
+    {
+      "cameras": ["CAM_ENTRY_01", "CAM_FLOOR_01"],
+      "description": "Floor camera partially overlaps with entry camera near entrance — dedup by Re-ID"
+    }
+  ],
+  "staff_uniform_hsv": {
+    "description": "HSV range for staff uniform colour detection",
+    "hue_min": 200,
+    "hue_max": 240,
+    "saturation_min": 80,
+    "saturation_max": 255,
+    "value_min": 50,
+    "value_max": 200
+  }
+}

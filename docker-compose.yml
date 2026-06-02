@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: store_intel
+      POSTGRES_PASSWORD: store_intel
+      POSTGRES_DB: store_intel
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U store_intel"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://store_intel:store_intel@db:5432/store_intel
+      POS_CSV_PATH: /data/pos_transactions.csv
+    volumes:
+      - ./data:/data:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_BASE: http://localhost:8000
+      VITE_WS_BASE: ws://localhost:8000
+    depends_on:
+      - api
+
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile.pipeline
+    environment:
+      API_BASE: http://api:8000
+      STORE_ID: STORE_BLR_002
+    volumes:
+      - .:/clips:ro
+      - ./data:/data
+    depends_on:
+      api:
+        condition: service_healthy
+    profiles:
+      - pipeline
+    command: >
+      bash /app/pipeline/run.sh
+
+volumes:
+  postgres_data:

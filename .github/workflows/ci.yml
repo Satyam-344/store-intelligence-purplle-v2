@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    name: Test & Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements-dev.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies (CPU-only torch)
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements-dev.txt \
+            --extra-index-url https://download.pytorch.org/whl/cpu
+
+      - name: Lint with ruff
+        run: ruff check app/ pipeline/ tests/ --ignore E501,F401
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ \
+            --cov=app \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --cov-fail-under=70 \
+            -v
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  docker-smoke:
+    name: Docker Compose Smoke Test
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create placeholder data files
+        run: |
+          mkdir -p data
+          TODAY=$(date -u +%Y-%m-%d)
+          echo "store_id,transaction_id,timestamp,basket_value_inr" > data/pos_transactions.csv
+          echo "STORE_BLR_002,TXN_001,${TODAY}T10:00:00Z,999.00" >> data/pos_transactions.csv
+
+      - name: Build Docker images
+        run: docker compose build api
+
+      - name: Start services (db + api only)
+        run: |
+          docker compose up -d db api
+          sleep 20
+
+      - name: Smoke test — health endpoint
+        run: |
+          curl -f http://localhost:8000/health || (docker compose logs api && exit 1)
+
+      - name: Smoke test — metrics endpoint
+        run: |
+          curl -f "http://localhost:8000/stores/STORE_BLR_002/metrics" || exit 1
+
+      - name: Smoke test — ingest endpoint
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          curl -f -X POST http://localhost:8000/events/ingest \
+            -H "Content-Type: application/json" \
+            -d "{\"events\": [{\"event_id\": \"550e8400-e29b-41d4-a716-446655440000\", \"store_id\": \"STORE_BLR_002\", \"camera_id\": \"CAM_ENTRY_01\", \"visitor_id\": \"VIS_smoke_01\", \"event_type\": \"ENTRY\", \"timestamp\": \"${TODAY}T10:00:00Z\", \"zone_id\": null, \"dwell_ms\": 0, \"is_staff\": false, \"confidence\": 0.9, \"metadata\": {\"queue_depth\": null, \"sku_zone\": null, \"session_seq\": 1}}]}" \
+            || exit 1
+
+      - name: Idempotency test — same event twice
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          RESULT=$(curl -s -X POST http://localhost:8000/events/ingest \
+            -H "Content-Type: application/json" \
+            -d "{\"events\": [{\"event_id\": \"550e8400-e29b-41d4-a716-446655440000\", \"store_id\": \"STORE_BLR_002\", \"camera_id\": \"CAM_ENTRY_01\", \"visitor_id\": \"VIS_smoke_01\", \"event_type\": \"ENTRY\", \"timestamp\": \"${TODAY}T10:00:00Z\", \"zone_id\": null, \"dwell_ms\": 0, \"is_staff\": false, \"confidence\": 0.9, \"metadata\": {\"queue_depth\": null, \"sku_zone\": null, \"session_seq\": 1}}]}")
+          echo "Second ingest result: $RESULT"
+          echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['duplicates']==1, f'Expected 1 duplicate, got {d}'"
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

@@ -99,6 +99,7 @@ Every structured log entry must include:
 | 2026-06-03 | Initial build complete — 55 files, 51 tests, 82% coverage | Satyam |
 | 2026-06-03 | GitHub repo created (public), reviewer invited | Satyam |
 | 2026-06-03 | Removed all AI tool references from tracked files; rewrote git history | Satyam |
+| 2026-06-03 | HuggingFace Spaces live demo deployed (SQLite + demo data seeder) | Satyam |
 
 ## Configuration
 ```python

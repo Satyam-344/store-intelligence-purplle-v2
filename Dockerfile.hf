@@ -1,0 +1,31 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/lists/*
+
+COPY requirements.txt .
+
+# Install without heavy ML stack (no torch/ultralytics needed for API-only demo)
+RUN pip install --no-cache-dir \
+    fastapi>=0.104.0 \
+    "uvicorn[standard]>=0.24.0" \
+    "pydantic[email]>=2.0.0" \
+    sqlalchemy>=2.0.0 \
+    structlog>=23.2.0 \
+    httpx>=0.25.0 \
+    python-dotenv>=1.0.0 \
+    python-multipart>=0.0.6
+
+COPY app/ ./app/
+COPY data/pos_transactions.csv ./data/pos_transactions.csv
+COPY data/store_layout.json ./data/store_layout.json
+
+ENV DATABASE_URL=sqlite:///./store_intel.db
+ENV POS_CSV_PATH=/app/data/pos_transactions.csv
+ENV PYTHONPATH=/app
+
+EXPOSE 7860
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]

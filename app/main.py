@@ -14,7 +14,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.database import check_db_health, init_db
+from app.database import DATABASE_URL, check_db_health, init_db
 from app.ingestion import router as ingest_router
 from app.metrics import router as metrics_router
 from app.funnel import router as funnel_router
@@ -33,6 +33,10 @@ VERSION = "1.0.0"
 async def lifespan(app: FastAPI):
     log.info("api_starting", version=VERSION)
     init_db(pos_csv_path=POS_CSV)
+    if DATABASE_URL.startswith("sqlite"):
+        from app.seed_demo import seed_demo
+        from app.database import db_session
+        seed_demo(db_session)
     log.info("api_ready")
     yield
     log.info("api_shutting_down")

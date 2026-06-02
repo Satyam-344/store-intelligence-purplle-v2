@@ -24,11 +24,12 @@ DATABASE_URL = os.environ.get(
     "postgresql://store_intel:store_intel@db:5432/store_intel",
 )
 
+_is_sqlite = DATABASE_URL.startswith("sqlite")
 engine = create_engine(
     DATABASE_URL,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
+    connect_args={"check_same_thread": False} if _is_sqlite else {},
+    pool_pre_ping=not _is_sqlite,
+    **({} if _is_sqlite else {"pool_size": 10, "max_overflow": 20}),
     echo=False,
 )
 

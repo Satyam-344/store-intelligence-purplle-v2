@@ -97,7 +97,8 @@ Every structured log entry must include:
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-03 | Initial build complete — 55 files, 51 tests, 82% coverage | Satyam |
-| 2026-06-03 | GitHub repo created, reviewer invited | Satyam |
+| 2026-06-03 | GitHub repo created (public), reviewer invited | Satyam |
+| 2026-06-03 | Removed all AI tool references from tracked files; rewrote git history | Satyam |
 
 ## Configuration
 ```python

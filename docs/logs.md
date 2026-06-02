@@ -100,6 +100,9 @@ Every structured log entry must include:
 | 2026-06-03 | GitHub repo created (public), reviewer invited | Satyam |
 | 2026-06-03 | Removed all AI tool references from tracked files; rewrote git history | Satyam |
 | 2026-06-03 | HuggingFace Spaces live demo deployed (SQLite + demo data seeder) | Satyam |
+| 2026-06-03 | Submission form filled: title, description, screenshots, pitch PDF, zip | Satyam |
+| 2026-06-03 | 5-slide pitch PDF generated (fpdf2), 3 screenshots captured via headless Chrome | Satyam |
+| 2026-06-03 | Full session work and conversation saved to Claude memory | Satyam |
 
 ## Configuration
 ```python
